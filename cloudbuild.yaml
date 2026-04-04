@@ -1,15 +1,17 @@
 steps:
-  # Build the Docker image
+  # Build the Docker image with pinned litellm version
   - name: 'gcr.io/cloud-builders/docker'
     args:
       - build
       - '-t'
       - 'us-central1-docker.pkg.dev/cosmic-heaven-479306-v5/a1/litellm:$COMMIT_SHA'
       - '-t'
+      - 'us-central1-docker.pkg.dev/cosmic-heaven-479306-v5/a1/litellm:$TAG_NAME'
+      - '-t'
       - 'us-central1-docker.pkg.dev/cosmic-heaven-479306-v5/a1/litellm:main-stable'
       - '.'
 
-  # Push both tags
+  # Push all tags
   - name: 'gcr.io/cloud-builders/docker'
     args:
       - push
@@ -48,6 +50,7 @@ steps:
 
 images:
   - 'us-central1-docker.pkg.dev/cosmic-heaven-479306-v5/a1/litellm:$COMMIT_SHA'
+  - 'us-central1-docker.pkg.dev/cosmic-heaven-479306-v5/a1/litellm:$TAG_NAME'
   - 'us-central1-docker.pkg.dev/cosmic-heaven-479306-v5/a1/litellm:main-stable'
 
 options:
