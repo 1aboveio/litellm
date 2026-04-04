@@ -2,18 +2,17 @@ model_list:
   - model_name: gpt-4o
     litellm_params:
       model: openai/gpt-4o
-      api_key: os.environ/OPENAI_API_KEY
+      # api_key managed via LiteLLM admin UI per issue #29
   - model_name: gpt-4o-mini
     litellm_params:
       model: openai/gpt-4o-mini
-      api_key: os.environ/OPENAI_API_KEY
+      # api_key managed via LiteLLM admin UI per issue #29
   - model_name: claude-3-5-sonnet
     litellm_params:
       model: anthropic/claude-3-5-sonnet-20241022
-      api_key: os.environ/ANTHROPIC_API_KEY
+      # api_key managed via LiteLLM admin UI per issue #29
 general_settings:
   store_model_in_db: true
   ui_access_mode: "admin_only"
 litellm_settings:
   drop_params: true
-
