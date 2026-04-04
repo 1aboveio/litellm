@@ -39,6 +39,9 @@ steps:
       - '--command=litellm'
       - '--service-account=$_SERVICE_ACCOUNT'
       - '--no-allow-unauthenticated'
+      - '--network=default'
+      - '--subnet=default'
+      - '--vpc-egress=private-ranges-only'
       - >-
         --set-env-vars=STORE_MODEL_IN_DB=True,LITELLM_LOG=ERROR,LITELLM_MODE=PRODUCTION
       - >-
@@ -57,4 +60,3 @@ substitutions:
   _TAG_NAME: main-stable
   _MIN_INSTANCES: '1'
   _SERVICE_ACCOUNT: litellm-proxy@cosmic-heaven-479306-v5.iam.gserviceaccount.com
-
