@@ -23,7 +23,7 @@ steps:
     args:
       - run
       - deploy
-      - litellm-proxy
+      - ${_SERVICE_NAME}
       - '--image=us-central1-docker.pkg.dev/cosmic-heaven-479306-v5/a1/litellm:$COMMIT_SHA'
       - '--region=us-central1'
       - '--project=cosmic-heaven-479306-v5'
@@ -31,7 +31,7 @@ steps:
       - '--port=4000'
       - '--memory=2Gi'
       - '--cpu=2'
-      - '--min-instances=1'
+      - '--min-instances=${_MIN_INSTANCES}'
       - '--max-instances=3'
       - '--concurrency=80'
       - '--timeout=300'
@@ -58,5 +58,7 @@ options:
   logging: CLOUD_LOGGING_ONLY
 
 substitutions:
-  _TAG_NAME: main
+  _SERVICE_NAME: litellm-proxy
+  _TAG_NAME: main-stable
+  _MIN_INSTANCES: '1'
   _SERVICE_ACCOUNT: litellm-proxy@cosmic-heaven-479306-v5.iam.gserviceaccount.com
