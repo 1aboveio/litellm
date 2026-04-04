@@ -1,5 +1,7 @@
-# Cloud Build pipeline for litellm-proxy (prod)
-# Trigger: push to `main` branch on 1aboveio/litellm
+# Cloud Build pipeline for litellm-proxy (dev)
+# Trigger: push to `dev` branch on 1aboveio/litellm
+# NOTE: PORT is set automatically by Cloud Run from --port flag. Do NOT set PORT
+# via --set-env-vars — it is a reserved name and will cause deploy to fail.
 steps:
   - name: 'gcr.io/cloud-builders/docker'
     args:
@@ -7,9 +9,7 @@ steps:
       - '--tag'
       - 'us-central1-docker.pkg.dev/cosmic-heaven-479306-v5/a1/litellm:$COMMIT_SHA'
       - '--tag'
-      - 'us-central1-docker.pkg.dev/cosmic-heaven-479306-v5/a1/litellm:${_TAG_NAME}'
-      - '--tag'
-      - 'us-central1-docker.pkg.dev/cosmic-heaven-479306-v5/a1/litellm:main-stable'
+      - 'us-central1-docker.pkg.dev/cosmic-heaven-479306-v5/a1/litellm:dev-$SHORT_SHA'
       - '.'
 
   - name: 'gcr.io/cloud-builders/docker'
@@ -23,7 +23,7 @@ steps:
     args:
       - run
       - deploy
-      - ${_SERVICE_NAME}
+      - litellm-proxy
       - '--image=us-central1-docker.pkg.dev/cosmic-heaven-479306-v5/a1/litellm:$COMMIT_SHA'
       - '--region=us-central1'
       - '--project=cosmic-heaven-479306-v5'
@@ -31,29 +31,23 @@ steps:
       - '--port=4000'
       - '--memory=2Gi'
       - '--cpu=2'
-      - '--min-instances=${_MIN_INSTANCES}'
+      - '--min-instances=0'
       - '--max-instances=3'
       - '--concurrency=80'
-      - '--timeout=300'
+      - '--timeout=600'
       - '--cpu-boost'
       - '--command=litellm'
-      - '--service-account=$_SERVICE_ACCOUNT'
+      - '--service-account=litellm-proxy@cosmic-heaven-479306-v5.iam.gserviceaccount.com'
       - '--no-allow-unauthenticated'
       - >-
-        --set-env-vars=PORT=4000,STORE_MODEL_IN_DB=True,LITELLM_LOG=ERROR,LITELLM_MODE=PRODUCTION
+        --set-env-vars=STORE_MODEL_IN_DB=True,LITELLM_LOG=ERROR,LITELLM_MODE=PRODUCTION
       - >-
-        --set-secrets=LITELLM_MASTER_KEY=litellm-master-key:latest,LITELLM_SALT_KEY=litellm-salt-key:latest,DATABASE_URL=litellm-database-url:latest,OPENAI_API_KEY=openai-api-key:latest,ANTHROPIC_API_KEY=anthropic-api-key:latest,/app/config.yaml=litellm-config:latest
+        --set-secrets=LITELLM_MASTER_KEY=litellm-master-key:latest,LITELLM_SALT_KEY=litellm-salt-key:latest,DATABASE_URL=litellm-database-url:latest,OPENAI_API_KEY=openai-api-key:latest,ANTHROPIC_API_KEY=anthropic-api-key:latest
+      - '--update-secrets=/app/config.yaml=litellm-config:latest'
 
 images:
   - 'us-central1-docker.pkg.dev/cosmic-heaven-479306-v5/a1/litellm:$COMMIT_SHA'
-  - 'us-central1-docker.pkg.dev/cosmic-heaven-479306-v5/a1/litellm:${_TAG_NAME}'
-  - 'us-central1-docker.pkg.dev/cosmic-heaven-479306-v5/a1/litellm:main-stable'
+  - 'us-central1-docker.pkg.dev/cosmic-heaven-479306-v5/a1/litellm:dev-$SHORT_SHA'
 
 options:
   logging: CLOUD_LOGGING_ONLY
-
-substitutions:
-  _SERVICE_NAME: litellm-proxy
-  _TAG_NAME: main-stable
-  _MIN_INSTANCES: '1'
-  _SERVICE_ACCOUNT: litellm-proxy@cosmic-heaven-479306-v5.iam.gserviceaccount.com
