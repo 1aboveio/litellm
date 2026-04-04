@@ -8,6 +8,7 @@
 
 substitutions:
   _ENV: prod
+  _SERVICE_ACCOUNT: litellm-proxy@cosmic-heaven-479306-v5.iam.gserviceaccount.com
 
 options:
   logging: CLOUD_LOGGING_ONLY
@@ -52,6 +53,8 @@ steps:
     waitFor: ['build']
 
   # ── Deploy to Cloud Run ───────────────────────────────────────────────────
+  # Direct VPC: cloud run → VPC → Cloud SQL private IP
+  # No --add-cloudsql-instances needed with private IP + ENCRYPTED_ONLY SSL
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     id: 'deploy'
     entrypoint: bash
@@ -72,10 +75,10 @@ steps:
           --concurrency=80 \
           --timeout=300 \
           --cpu-boost \
-          --service-account=litellm-proxy@cosmic-heaven-479306-v5.iam.gserviceaccount.com \
-          --network=default \\
-          --subnet=default \\
-          --vpc-egress=private-ranges-only \\
+          --network=default \
+          --subnet=default \
+          --vpc-egress=private-ranges-only \
+          --service-account=$_SERVICE_ACCOUNT \
           --no-allow-unauthenticated \
           --set-env-vars=STORE_MODEL_IN_DB=True,LITELLM_LOG=ERROR,LITELLM_MODE=PRODUCTION \
           --set-secrets=LITELLM_MASTER_KEY=litellm-master-key:latest,LITELLM_SALT_KEY=litellm-salt-key:latest,DATABASE_URL=litellm-database-url:latest \
