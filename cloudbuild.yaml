@@ -1,24 +1,21 @@
 steps:
-  # Build the Docker image with pinned litellm version
   - name: 'gcr.io/cloud-builders/docker'
     args:
       - build
       - '-t'
       - 'us-central1-docker.pkg.dev/cosmic-heaven-479306-v5/a1/litellm:$COMMIT_SHA'
       - '-t'
-      - 'us-central1-docker.pkg.dev/cosmic-heaven-479306-v5/a1/litellm:$TAG_NAME'
+      - 'us-central1-docker.pkg.dev/cosmic-heaven-479306-v5/a1/litellm:${_TAG_NAME}'
       - '-t'
       - 'us-central1-docker.pkg.dev/cosmic-heaven-479306-v5/a1/litellm:main-stable'
       - '.'
 
-  # Push all tags
   - name: 'gcr.io/cloud-builders/docker'
     args:
       - push
       - '--all-tags'
       - 'us-central1-docker.pkg.dev/cosmic-heaven-479306-v5/a1/litellm'
 
-  # Deploy to Cloud Run
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     entrypoint: gcloud
     args:
@@ -50,7 +47,7 @@ steps:
 
 images:
   - 'us-central1-docker.pkg.dev/cosmic-heaven-479306-v5/a1/litellm:$COMMIT_SHA'
-  - 'us-central1-docker.pkg.dev/cosmic-heaven-479306-v5/a1/litellm:$TAG_NAME'
+  - 'us-central1-docker.pkg.dev/cosmic-heaven-479306-v5/a1/litellm:${_TAG_NAME}'
   - 'us-central1-docker.pkg.dev/cosmic-heaven-479306-v5/a1/litellm:main-stable'
 
 options:
