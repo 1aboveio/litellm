@@ -136,7 +136,7 @@ EXPOSE 4000/tcp
 RUN apk add --no-cache supervisor
 COPY docker/supervisord.conf /etc/supervisord.conf
 
-ENTRYPOINT ["docker/prod_entrypoint.sh"]
+ENTRYPOINT ["/app/docker/prod_entrypoint.sh"]
 
 # Append "--detailed_debug" to the end of CMD to view detailed debug logs
 CMD ["--port", "4000"]
