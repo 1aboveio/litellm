@@ -38,9 +38,6 @@ steps:
       - '--cpu-boost'
       - '--service-account=$_SERVICE_ACCOUNT'
       - '--add-cloudsql-instances=cosmic-heaven-479306-v5:us-central1:ai-dev'
-      - '--network=default'
-      - '--subnet=default'
-      - '--vpc-egress=private-ranges-only'
       - '--no-allow-unauthenticated'
       - >-
         --set-env-vars=STORE_MODEL_IN_DB=True,LITELLM_LOG=ERROR,LITELLM_MODE=PRODUCTION
