@@ -1,0 +1,88 @@
+# Cloud Build pipeline for litellm-proxy
+# Two triggers (same file, different _ENV substitution):
+#   litellm-deploy-prod  — branch main,  _ENV=prod  → service litellm-proxy, min-instances=1
+#   litellm-deploy-dev   — branch dev,   _ENV=dev   → service litellm-proxy-dev, min-instances=0
+#
+# _ENV is the only trigger-level substitution. The env-vars step writes
+# SERVICE_NAME and MIN_INSTANCES to build.env; subsequent steps source it.
+
+substitutions:
+  _ENV: prod
+
+options:
+  logging: CLOUD_LOGGING_ONLY
+
+steps:
+  # ── Derive env-specific values ─────────────────────────────────────────────
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    id: 'env-vars'
+    entrypoint: bash
+    args:
+      - -c
+      - |
+        if [ "$_ENV" = "prod" ]; then
+          echo "SERVICE_NAME=litellm-proxy"
+          echo "MIN_INSTANCES=1"
+        else
+          echo "SERVICE_NAME=litellm-proxy-dev"
+          echo "MIN_INSTANCES=0"
+        fi > build.env
+        cat build.env
+
+  # ── Build ──────────────────────────────────────────────────────────────────
+  - name: 'gcr.io/cloud-builders/docker'
+    id: 'build'
+    args:
+      - build
+      - '--tag'
+      - 'us-central1-docker.pkg.dev/${PROJECT_ID}/a1/litellm:${COMMIT_SHA}'
+      - '--tag'
+      - >-
+        us-central1-docker.pkg.dev/${PROJECT_ID}/a1/litellm:${_ENV
+        == "prod" ? "main-stable" : "dev-stable"}
+      - '.'
+
+  # ── Push ──────────────────────────────────────────────────────────────────
+  - name: 'gcr.io/cloud-builders/docker'
+    id: 'push'
+    args:
+      - push
+      - '--all-tags'
+      - 'us-central1-docker.pkg.dev/${PROJECT_ID}/a1/litellm'
+    waitFor: ['build']
+
+  # ── Deploy to Cloud Run ───────────────────────────────────────────────────
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    id: 'deploy'
+    entrypoint: bash
+    args:
+      - -c
+      - |
+        set -a && . build.env && set +a
+        gcloud run deploy "$${SERVICE_NAME}" \
+          --image=us-central1-docker.pkg.dev/$${PROJECT_ID}/a1/litellm:$${COMMIT_SHA} \
+          --region=us-central1 \
+          --project=$${PROJECT_ID} \
+          --platform=managed \
+          --port=4000 \
+          --memory=2Gi \
+          --cpu=2 \
+          --min-instances=$${MIN_INSTANCES} \
+          --max-instances=3 \
+          --concurrency=80 \
+          --timeout=300 \
+          --cpu-boost \
+          --service-account=903828198190-compute@developer.gserviceaccount.com \
+          --add-cloudsql-instances=$${PROJECT_ID}:us-central1:ai-dev \
+          --no-allow-unauthenticated \
+          --set-env-vars=STORE_MODEL_IN_DB=True,LITELLM_LOG=ERROR,LITELLM_MODE=PRODUCTION \
+          --set-secrets=LITELLM_MASTER_KEY=litellm-master-key:latest,LITELLM_SALT_KEY=litellm-salt-key:latest,DATABASE_URL=litellm-database-url:latest \
+          --set-secrets=OPENAI_API_KEY=openai-api-key:latest,ANTHROPIC_API_KEY=anthropic-api-key:latest \
+          --update-secrets=/app/config.yaml=litellm-config:latest
+    waitFor: ['push']
+
+images:
+  - 'us-central1-docker.pkg.dev/${PROJECT_ID}/a1/litellm:${COMMIT_SHA}'
+  - >-
+    us-central1-docker.pkg.dev/${PROJECT_ID}/a1/litellm:${_ENV
+    == "prod" ? "main-stable" : "dev-stable"}
