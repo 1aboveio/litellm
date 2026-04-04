@@ -38,6 +38,7 @@ steps:
       - '--cpu-boost'
       - '--command=litellm'
       - '--service-account=$_SERVICE_ACCOUNT'
+      - '--add-cloudsql-instances=cosmic-heaven-479306-v5:us-central1:ai-dev'
       - '--no-allow-unauthenticated'
       - >-
         --set-env-vars=STORE_MODEL_IN_DB=True,LITELLM_LOG=ERROR,LITELLM_MODE=PRODUCTION
