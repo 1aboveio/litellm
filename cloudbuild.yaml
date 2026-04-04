@@ -72,8 +72,10 @@ steps:
           --concurrency=80 \
           --timeout=300 \
           --cpu-boost \
-          --service-account=903828198190-compute@developer.gserviceaccount.com \
-          --add-cloudsql-instances=$${PROJECT_ID}:us-central1:ai-dev \
+          --service-account=litellm-proxy@cosmic-heaven-479306-v5.iam.gserviceaccount.com \
+          --network=default \\
+          --subnet=default \\
+          --vpc-egress=private-ranges-only \\
           --no-allow-unauthenticated \
           --set-env-vars=STORE_MODEL_IN_DB=True,LITELLM_LOG=ERROR,LITELLM_MODE=PRODUCTION \
           --set-secrets=LITELLM_MASTER_KEY=litellm-master-key:latest,LITELLM_SALT_KEY=litellm-salt-key:latest,DATABASE_URL=litellm-database-url:latest \
