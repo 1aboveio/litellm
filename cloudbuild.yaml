@@ -40,9 +40,9 @@ steps:
       - '--service-account=$_SERVICE_ACCOUNT'
       - '--no-allow-unauthenticated'
       - >-
-        --set-env-vars=PORT=4000,STORE_MODEL_IN_DB=True,LITELLM_LOG=ERROR,LITELLM_MODE=PRODUCTION
+        --set-env-vars=STORE_MODEL_IN_DB=True,LITELLM_LOG=ERROR,LITELLM_MODE=PRODUCTION
       - >-
-        --set-secrets=LITELLM_MASTER_KEY=litellm-master-key:latest,LITELLM_SALT_KEY=litellm-salt-key:latest,DATABASE_URL=litellm-database-url:latest,OPENAI_API_KEY=openai-api-key:latest,ANTHROPIC_API_KEY=anthropic-api-key:latest,/app/config.yaml=litellm-config:latest
+        --set-secrets=LITELLM_MASTER_KEY=litellm-master-key:latest,LITELLM_SALT_KEY=litellm-salt-key:latest,DATABASE_URL=litellm-database-url:latest,/app/config.yaml=litellm-config:latest
 
 images:
   - 'us-central1-docker.pkg.dev/cosmic-heaven-479306-v5/a1/litellm:$COMMIT_SHA'
