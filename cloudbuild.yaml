@@ -1,5 +1,7 @@
-# Cloud Build pipeline for litellm-proxy (prod)
-# Trigger: push to `main` branch on 1aboveio/litellm
+# Cloud Build pipeline for litellm-proxy
+# Triggered by litellm-deploy-prod (main) and litellm-deploy-dev (dev)
+# Both use the same file; _SERVICE_NAME/_TAG_NAME/_MIN_INSTANCES/_SERVICE_ACCOUNT
+# are passed as trigger substitutions.
 steps:
   - name: 'gcr.io/cloud-builders/docker'
     args:
@@ -18,12 +20,14 @@ steps:
       - '--all-tags'
       - 'us-central1-docker.pkg.dev/cosmic-heaven-479306-v5/a1/litellm'
 
+  # Direct VPC: cloud run → VPC → Cloud SQL private IP
+  # No --add-cloudsql-instances needed with private IP + ENCRYPTED_ONLY SSL
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     entrypoint: gcloud
     args:
       - run
       - deploy
-      - ${_SERVICE_NAME}
+      - '${_SERVICE_NAME}'
       - '--image=us-central1-docker.pkg.dev/cosmic-heaven-479306-v5/a1/litellm:$COMMIT_SHA'
       - '--region=us-central1'
       - '--project=cosmic-heaven-479306-v5'
@@ -36,13 +40,18 @@ steps:
       - '--concurrency=80'
       - '--timeout=300'
       - '--cpu-boost'
-      - '--command=litellm'
-      - '--service-account=$_SERVICE_ACCOUNT'
+      - '--network=default'
+      - '--subnet=default'
+      - '--vpc-egress=private-ranges-only'
+      - '--service-account=${_SERVICE_ACCOUNT}'
       - '--no-allow-unauthenticated'
       - >-
         --set-env-vars=STORE_MODEL_IN_DB=True,LITELLM_LOG=ERROR,LITELLM_MODE=PRODUCTION
       - >-
-        --set-secrets=LITELLM_MASTER_KEY=litellm-master-key:latest,LITELLM_SALT_KEY=litellm-salt-key:latest,DATABASE_URL=litellm-database-url:latest,/app/config.yaml=litellm-config:latest
+        --set-secrets=LITELLM_MASTER_KEY=litellm-master-key:latest,LITELLM_SALT_KEY=litellm-salt-key:latest,DATABASE_URL=litellm-database-url:latest
+      - >-
+        --set-secrets=OPENAI_API_KEY=openai-api-key:latest,ANTHROPIC_API_KEY=anthropic-api-key:latest
+      - '--update-secrets=/app/config.yaml=litellm-config:latest'
 
 images:
   - 'us-central1-docker.pkg.dev/cosmic-heaven-479306-v5/a1/litellm:$COMMIT_SHA'
@@ -57,4 +66,3 @@ substitutions:
   _TAG_NAME: main-stable
   _MIN_INSTANCES: '1'
   _SERVICE_ACCOUNT: litellm-proxy@cosmic-heaven-479306-v5.iam.gserviceaccount.com
-
