@@ -1,3 +1,6 @@
+substitutions:
+  _SERVICE_ACCOUNT: litellm-proxy@cosmic-heaven-479306-v5.iam.gserviceaccount.com
+
 # Dev deploy: triggered on push to `dev` branch
 # Deploys to litellm-proxy-dev Cloud Run service
 # Uses same SA and secrets as prod; only service name and tag differ
@@ -35,7 +38,7 @@ steps:
       - '--concurrency=80'
       - '--timeout=300'
       - '--cpu-boost'
-      - '--service-account=litellm-proxy@cosmic-heaven-479306-v5.iam.gserviceaccount.com'
+      - '--service-account=$_SERVICE_ACCOUNT'
       - '--network=default'
       - '--subnet=default'
       - '--vpc-egress=private-ranges-only'
