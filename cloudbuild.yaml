@@ -1,3 +1,5 @@
+# Cloud Build pipeline for litellm-proxy (prod)
+# Trigger: push to `main` branch on 1aboveio/litellm
 steps:
   - name: 'gcr.io/cloud-builders/docker'
     args:
