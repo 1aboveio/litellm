@@ -1,13 +1,13 @@
-# Dev-first deploy: triggered on push to `dev` branch
+# Dev deploy: triggered on push to `dev` branch
 # Deploys to litellm-proxy-dev Cloud Run service
-# Secrets / SA same as prod — only service name and tag differ
+# Uses same SA and secrets as prod; only service name and tag differ
 steps:
   - name: 'gcr.io/cloud-builders/docker'
     args:
       - build
-      - '-t'
+      - '--tag'
       - 'us-central1-docker.pkg.dev/cosmic-heaven-479306-v5/a1/litellm:$COMMIT_SHA'
-      - '-t'
+      - '--tag'
       - 'us-central1-docker.pkg.dev/cosmic-heaven-479306-v5/a1/litellm:dev-$SHORT_SHA'
       - '.'
 
@@ -35,8 +35,10 @@ steps:
       - '--concurrency=80'
       - '--timeout=300'
       - '--cpu-boost'
-      - '--service-account=litellm-proxy@cosmic-heaven-479306-v5.iam.gserviceaccount.com'
-      - '--add-cloudsql-instances=cosmic-heaven-479306-v5:us-central1:ai-dev'
+      - '--service-account=id-above-office-openclaw@cosmic-heaven-479306-v5.iam.gserviceaccount.com'
+      - '--network=default'
+      - '--subnet=default'
+      - '--vpc-egress=private-ranges-only'
       - '--no-allow-unauthenticated'
       - >-
         --set-env-vars=STORE_MODEL_IN_DB=True,LITELLM_LOG=ERROR,LITELLM_MODE=PRODUCTION
