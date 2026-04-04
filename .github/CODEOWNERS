@@ -1,0 +1,3 @@
+# CODEOWNERS
+# Vera reviews all PRs; Jonas required on main (via branch protection)
+* @jonas01705 @vera932
